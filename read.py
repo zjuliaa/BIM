@@ -32,32 +32,26 @@ def approximate_floor_area_from_shape(shape):
     return hull.volume
 
 def main():
-    # Połącz z MongoDB Atlas (podmień na swój connection string)
     client = MongoClient("mongodb+srv://uzytkownik1:scpuXTRs6vB6kByI@budynek.kb5uuax.mongodb.net/")
     db = client["ifc_db"]
     collection = db["spaces"]
 
-    ifc_file_path = "modele/dom_jednorodzinny.ifc"
+    ifc_file_path = "C:\\sem6\\BIM\\Dom_jednorodzinny.ifc"  # Uwaga na podwójne backslashe!
     settings = ifcopenshell.geom.settings()
     ifc_file = ifcopenshell.open(ifc_file_path)
     spaces = ifc_file.by_type("IfcSpace")
 
-    # Usuń stare dane (opcjonalnie)
     collection.delete_many({})
 
     for space in spaces:
-        # Zbierz podstawowe info
         space_doc = {
             "global_id": space.GlobalId,
             "name": space.Name,
             "long_name": getattr(space, "LongName", None),
             "description": space.Description,
             "properties": {},
-            "area_from_pset": None,
             "area_from_geom": None
         }
-
-        space_doc["area_from_pset"] = get_area_from_property_sets(space)
 
         try:
             shape = ifcopenshell.geom.create_shape(settings, space)

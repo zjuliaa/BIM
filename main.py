@@ -72,7 +72,7 @@ def approximate_floor_area_from_shape(shape):
     return hull.volume  
 
 if __name__ == "__main__":
-    ifc_file_path = "modele/dom_jednorodzinny.ifc"
+    ifc_file_path = "C:\sem6\BIM\Dom_jednorodzinny.ifc"
     settings, spaces, name,  area = extract_building_properties(ifc_file_path)
     print(f"Budynek: {name}")
 
