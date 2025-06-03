@@ -20,6 +20,9 @@ def get_rooms_by_storey(storey_number: int):
         "storey": 1,
         "dimensions.area": 1,
         "dimensions.volume": 1,
+        "dimensions.height": 1,
+        "dimensions.width": 1,
+        "dimensions.length": 1,
         "geometry2D": 1
     }
     return list(collection.find(query, projection))
