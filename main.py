@@ -3,6 +3,8 @@ import ifcopenshell.geom
 import math
 from scipy.spatial import ConvexHull
 import numpy as np
+import matplotlib.pyplot as plt
+
 
 def calculate_area_from_shape(shape):
     verts = shape.geometry.verts
@@ -71,14 +73,83 @@ def approximate_floor_area_from_shape(shape):
     hull = ConvexHull(xy_points)
     return hull.volume  
 
+def extract_building_overview(ifc_path):
+    ifc_file = ifcopenshell.open(ifc_path)
+
+    # Działka (IfcSite)
+    sites = ifc_file.by_type("IfcSite")
+    if sites:
+        site = sites[0]
+        site_name = site.Name or "Brak nazwy"
+        site_latitude = getattr(site.RefLatitude, 'wrappedValue', site.RefLatitude if hasattr(site, "RefLatitude") else None)
+        site_longitude = getattr(site.RefLongitude, 'wrappedValue', site.RefLongitude if hasattr(site, "RefLongitude") else None)
+        print("📍 Informacje o działce:")
+        print(f"  - Nazwa: {site_name}")
+        print(f"  - Szerokość geograficzna: {site_latitude}")
+        print(f"  - Długość geograficzna: {site_longitude}")
+    else:
+        print("❗ Brak danych o działce (IfcSite)")
+
+    # Budynek
+    buildings = ifc_file.by_type("IfcBuilding")
+    if buildings:
+        building = buildings[0]
+        building_name = building.Name or "Brak nazwy budynku"
+        print(f"\n🏢 Budynek: {building_name}")
+    else:
+        print("❗ Brak danych o budynku")
+        return
+
+    # Kondygnacje
+    storeys = ifc_file.by_type("IfcBuildingStorey")
+    print(f"  - Liczba kondygnacji: {len(storeys)}")
+
+    # Pomieszczenia
+    spaces = ifc_file.by_type("IfcSpace")
+    print(f"  - Liczba pomieszczeń: {len(spaces)}")
+
+    # Drzwi
+    doors = ifc_file.by_type("IfcDoor")
+    print(f"  - Liczba drzwi: {len(doors)}")
+
+    # Okna
+    windows = ifc_file.by_type("IfcWindow")
+    print(f"  - Liczba okien: {len(windows)}")
+
+def get_room_dimensions(space, settings):
+    try:
+        shape = ifcopenshell.geom.create_shape(settings, space)
+        verts = shape.geometry.verts
+        points = np.array(verts).reshape(-1, 3)
+
+        # Zakresy w osiach X, Y, Z
+        min_x, max_x = np.min(points[:, 0]), np.max(points[:, 0])
+        min_y, max_y = np.min(points[:, 1]), np.max(points[:, 1])
+        min_z, max_z = np.min(points[:, 2]), np.max(points[:, 2])
+
+        length = max_x - min_x
+        width = max_y - min_y
+        height = max_z - min_z
+
+        name = space.LongName or space.Name or "Nieznana nazwa"
+        print(f"📏 Pomieszczenie: {name}")
+        print(f"  - Długość: {length:.2f} m")
+        print(f"  - Szerokość: {width:.2f} m")
+        print(f"  - Wysokość: {height:.2f} m\n")
+
+    except Exception as e:
+        print(f"❗ Błąd w pomieszczeniu {space.LongName}: {e}")
+
 if __name__ == "__main__":
     ifc_file_path = "C:\sem6\BIM\Dom_jednorodzinny.ifc"
+    extract_building_overview(ifc_file_path)
     settings, spaces, name,  area = extract_building_properties(ifc_file_path)
     print(f"Budynek: {name}")
 
     total_geom_area = 0.0
     for space in spaces:
         try:
+            get_room_dimensions(space, settings)
             shape = ifcopenshell.geom.create_shape(settings, space)
             area = approximate_floor_area_from_shape(shape)
             print(f"Pomieszczenie {space.LongName} - przybliżona powierzchnia: {area:.2f} m²")
