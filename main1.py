@@ -18,7 +18,7 @@ storey_menu = ttk.Combobox(top_frame, textvariable=storey_var, state="readonly",
 storeys = get_storeys()
 storey_menu["values"] = storeys
 storey_menu.grid(row=0, column=0, sticky="ew")
-back_button = ttk.Button(top_frame, text="Wróć do widoku piętra", command=lambda: draw_floor())
+back_button = ttk.Button(top_frame, text="Wróć do widoku piętra", command=lambda: reset_selection_and_draw())
 back_button.grid(row=0, column=1, padx=10)
 list_frame = ttk.Frame(root, padding=(10,10))
 list_frame.grid(row=1, column=0, sticky="nsew")
@@ -44,6 +44,12 @@ def random_color():
     g = random.randint(base, 255)
     b = random.randint(base, 255)
     return f'#{r:02x}{g:02x}{b:02x}'
+
+def reset_selection_and_draw():
+    global selected_room_index
+    selected_room_index = None
+    draw_floor()
+
 
 def draw_floor():
     global room_colors
