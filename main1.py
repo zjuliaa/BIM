@@ -102,7 +102,9 @@ def draw_floor():
             canvas.create_polygon(scaled, fill=fill_color, outline="darkblue", width=3)
 
 def load_rooms(event):
-    global loaded_rooms
+    global loaded_rooms, selected_room_index
+    selected_room_index = None  
+
     try:
         storey = int(storey_var.get())
     except ValueError:
@@ -115,6 +117,7 @@ def load_rooms(event):
         room_list.insert(tk.END, room.get("name", "Brak nazwy"))
 
     draw_floor()
+
 
 def draw_room(event):
     global selected_room_index
